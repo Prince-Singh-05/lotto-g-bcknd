@@ -4,6 +4,9 @@ dotenv.config();
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import { connectDB } from "./config/database";
+import userRouter from "./routes/user.route";
+import lotteryRouter from "./routes/lottery.route";
+import ticketRouter from "./routes/ticket.route";
 
 const app: Express = express();
 const port = process.env.PORT || 4000;
@@ -14,12 +17,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use("/api/v1/user", userRouter);
+app.use("api/v1/lottery", lotteryRouter);
+app.use("api/v1/ticket", ticketRouter);
+
 // Basic health check route
 app.get("/health", (req: Request, res: Response) => {
-  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+	res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 // Start server
 app.listen(port, () => {
-  console.log(`Server running at port http://localhost:${port}`);
+	console.log(`Server running at port http://localhost:${port}`);
 });
