@@ -11,6 +11,9 @@ declare global {
         userId: string;
         role: string;
       };
+      retailer?: {
+        id: string;
+      };
     }
   }
 }
@@ -109,4 +112,33 @@ export const validateWalletOperation = (
   }
 
   next();
+};
+
+export const authenticateRetailer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    const token = (authHeader && authHeader.split(" ")[1]) || req.cookies.token; // Bearer TOKEN
+
+    if (!token) {
+      return res.status(401).json({ message: "Authentication token required" });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
+      if (err) {
+        return res.status(403).json({ message: "Invalid or expired token" });
+      }
+
+      req.retailer = {
+        id: decoded.userId,
+      };
+
+      next();
+    });
+  } catch (error) {
+    res.status(401).json({ message: "Authentication failed" });
+  }
 };
