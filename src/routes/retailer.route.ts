@@ -1,11 +1,11 @@
 import express from "express";
 import { authenticateRetailer } from "../middlewares/auth.middleware";
 import {
-  getDashboardData,
-  getRetailerStore,
-  login,
-  register,
-  updateBranding,
+	getDashboardData,
+	getRetailerStore,
+	login,
+	register,
+	updateBranding,
 } from "../controllers/retailer.controller";
 
 const retailerRouter = express.Router();
@@ -17,7 +17,7 @@ retailerRouter.post("/register", register);
 retailerRouter.post("/login", login);
 
 // Get retailer dashboard data
-retailerRouter.get("/dashboard", authenticateRetailer, getDashboardData);
+retailerRouter.get("/details", authenticateRetailer, getDashboardData);
 
 // Update retailer branding
 retailerRouter.put("/branding", authenticateRetailer, updateBranding);

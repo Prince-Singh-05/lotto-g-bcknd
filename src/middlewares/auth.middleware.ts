@@ -133,7 +133,7 @@ export const authenticateRetailer = async (
       }
 
       req.retailer = {
-        id: decoded.userId,
+        id: decoded.retailerId,
       };
 
       next();

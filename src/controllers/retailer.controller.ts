@@ -1,47 +1,70 @@
 import { Request, Response } from "express";
 import Retailer from "../models/retailer.model";
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import AffiliateTransaction from "../models/affiliateTransaction.model";
+import { generateUniqueId, verifyOTP } from "../utils/helpers";
+import { AuthRegistrationsCredentialListMappingListInstance } from "twilio/lib/rest/api/v2010/account/sip/domain/authTypes/authTypeRegistrations/authRegistrationsCredentialListMapping";
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret-key";
 
-const generateUniqueId = async () => {
-  const uniqueId = Math.random().toString(36).substring(2, 9);
-  const existingRetailer = await Retailer.findOne({ uniqueId });
-  if (existingRetailer) {
-    return generateUniqueId();
-  }
-  return uniqueId;
-};
-
 const register = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, brandName } = req.body;
+    const {
+      name,
+      email,
+      phone: phoneNumber,
+      countryCode,
+      brandName,
+      otp,
+    } = req.body;
+
+    const phone = `${countryCode} ${phoneNumber}`;
+    console.log("phone - ", phone);
 
     // Check if retailer already exists
-    const existingRetailer = await Retailer.findOne({ email });
+    const existingRetailer = await Retailer.findOne({
+      $or: [{ email }, { phoneNumber: phone }],
+    });
+
     if (existingRetailer) {
-      return res.status(400).json({ message: "Retailer already exists" });
+      return res.status(400).json({
+        message: "Retailer with this email or phone number already exists",
+      });
+    }
+
+    if (!verifyOTP(phone, otp)) {
+      return res.status(400).json({ message: "Invalid OTP" });
     }
 
     // Generate unique ID for retailer
     const uniqueId = await generateUniqueId();
-    const hashedPassword = await bcrypt.hash(password, 10);
 
     const retailer = new Retailer({
       name,
       email,
-      password: hashedPassword,
+      phoneNumber: phone,
       brandName,
       uniqueId,
     });
 
-    await retailer.save();
-    res.status(201).json({
-      message: "Retailer registered successfully",
-      uniqueId,
+    // Generate JWT token
+    const token = jwt.sign({ retailerId: retailer._id }, JWT_SECRET, {
+      expiresIn: "24h",
     });
+
+    await retailer.save();
+    res
+      .cookie("retailerToken", token, {
+        httpOnly: true,
+        maxAge: 60 * 60 * 24 * 1000,
+      })
+      .status(201)
+      .json({
+        message: "Retailer registered successfully",
+        uniqueId,
+        token,
+        retailer,
+      });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
@@ -49,26 +72,35 @@ const register = async (req: Request, res: Response) => {
 
 const login = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { countryCode, phone: phoneNumber, otp } = req.body;
+
+    const phone = `${countryCode} ${phoneNumber}`;
+    console.log("phone - ", phone);
 
     // Find retailer by email
-    const retailer = await Retailer.findOne({ email });
+    const retailer = await Retailer.findOne({ phoneNumber: phone });
     if (!retailer) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res
+        .status(401)
+        .json({ message: "No retailer found with this phone number" });
     }
 
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, retailer.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid email or password" });
+    // Verify otp
+    if (!verifyOTP(phone, otp)) {
+      return res.status(401).json({ message: "Invalid OTP" });
     }
 
     // Generate JWT token
-    const token = jwt.sign({ userId: retailer._id }, JWT_SECRET, {
+    const token = jwt.sign({ retailerId: retailer._id }, JWT_SECRET, {
       expiresIn: "24h",
     });
 
-    res.cookie("token", token, { httpOnly: true }).json({ token });
+    res
+      .cookie("retailerToken", token, {
+        httpOnly: true,
+        maxAge: 60 * 60 * 24 * 1000,
+      })
+      .json({ message: "Login successful", token, retailer });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
@@ -98,12 +130,21 @@ const getDashboardData = async (req: Request, res: Response) => {
       .filter((tx) => tx.status === "pending")
       .reduce((sum, tx) => sum + tx.commission, 0);
 
+    const customerCount = new Set(transactions.map((tx) => tx.customerId));
+
+    const totalSalesAmount = transactions.reduce(
+      (sum, tx) => sum + tx.amount,
+      0
+    );
+
     res.json({
       retailer,
       metrics: {
         totalEarnings,
         pendingEarnings,
+        totalSales: totalSalesAmount,
         transactionCount: transactions.length,
+        customerCount: customerCount.size,
       },
       recentTransactions: transactions.slice(0, 10),
     });
