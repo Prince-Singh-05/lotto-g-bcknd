@@ -16,7 +16,7 @@ import {
 const userRouter = Router();
 
 userRouter.post("/register", register);
-userRouter.post("/login", authenticateToken, login);
+userRouter.post("/login", login);
 userRouter.get("/getProfile", authenticateToken, requireOwnership, getProfile);
 userRouter.put(
 	"/updateProfile",
