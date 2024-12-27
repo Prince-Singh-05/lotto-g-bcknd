@@ -9,7 +9,6 @@ const lotterySchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      required: true,
       trim: true,
     },
     ticket_price: {
@@ -18,28 +17,29 @@ const lotterySchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      required: true,
-    },
-    quantity: {
-      type: Number,
-      required: true,
-    },
-    ticket_prize: {
-      type: Number,
     },
     status: {
       type: String,
       enum: ["open", "closed", "completed"],
+      default: "open",
     },
     draw_date: {
-      type: Date,
+      type: String,
+      required: true,
+    },
+    draw_time: {
+      type: String,
+      required: true,
     },
     ticket_sold: {
       type: Number,
     },
-    prizes: [
+    prizeTiers: [
       {
-        ticket_number: {
+        prize: {
+          type: String,
+        },
+        winners: {
           type: Number,
         },
         amount: {
@@ -47,6 +47,14 @@ const lotterySchema = new mongoose.Schema(
         },
       },
     ],
+    digit_length: {
+      type: Number,
+      required: true,
+    },
+    category: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );

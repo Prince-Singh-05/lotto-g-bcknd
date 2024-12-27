@@ -4,7 +4,9 @@ import Lottery from "../models/lottery.model";
 
 export const purchaseTicket = async (req: Request, res: Response) => {
 	try {
-		const { lottery_id, user_id, custom_ticket_number } = req.body;
+		const { lottery_id, custom_ticket_numbers } = req.body;
+
+		const user_id = req.user?.userId;
 
 		// Check if lottery exists and is open
 		const lottery = await Lottery.findById(lottery_id);
@@ -17,43 +19,22 @@ export const purchaseTicket = async (req: Request, res: Response) => {
 				.json({ message: "Lottery is not open for ticket purchase" });
 		}
 
-		// Generate ticket number
-		let ticket_number;
-		if (custom_ticket_number) {
-			const existingTicekt = await Ticket.findOne({
+		for (let i = 0; i < custom_ticket_numbers.length; i++) {
+			const ticket = await Ticket.create({
 				lottery_id,
-				ticket_number: custom_ticket_number,
+				user_id,
+				ticket_number: custom_ticket_numbers[i],
+				purchase_date: new Date(),
+				status: "active",
 			});
-			if (existingTicekt) {
-				return res
-					.status(400)
-					.json({ message: "Ticket number already exists" });
-			}
-			ticket_number = custom_ticket_number;
-		} else {
-			const lastTicket = await Ticket.findOne({ lottery_id }).sort({
-				ticket_number: -1,
-			});
-			ticket_number = lastTicket ? lastTicket.ticket_number + 1 : 1;
 		}
-
-		// Create ticket
-		const ticket = new Ticket({
-			lottery_id,
-			user_id,
-			ticket_number,
-			purchase_date: new Date(),
-			status: "active",
-		});
-
-		await ticket.save();
 
 		// Update lottery ticket sold count
 		await Lottery.findByIdAndUpdate(lottery_id, {
 			$inc: { ticket_sold: 1 },
 		});
 
-		res.status(201).json(ticket);
+		res.status(201).json({ message: "Tickets purchased successfully" });
 	} catch (error) {
 		res.status(400).json({ message: (error as Error).message });
 	}
@@ -62,7 +43,18 @@ export const purchaseTicket = async (req: Request, res: Response) => {
 export const getUserTickets = async (req: Request, res: Response) => {
 	try {
 		const tickets = await Ticket.find({
-			user_id: req.params.userId,
+			user_id: req.user?.userId,
+		}).populate("lottery_id", "name description draw_date");
+		res.status(200).json(tickets);
+	} catch (error) {
+		res.status(500).json({ message: (error as Error).message });
+	}
+};
+
+export const getTicketsByLotteryId = async (req: Request, res: Response) => {
+	try {
+		const tickets = await Ticket.find({
+			lottery_id: req.params.lotteryId,
 		}).populate("lottery_id", "name description draw_date");
 		res.status(200).json(tickets);
 	} catch (error) {
@@ -95,11 +87,9 @@ export const cancelTicket = async (req: Request, res: Response) => {
 		// Check if lottery is still open
 		const lottery = await Lottery.findById(ticket.lottery_id);
 		if (!lottery || lottery.status !== "open") {
-			return res
-				.status(400)
-				.json({
-					message: "Cannot cancel ticket - lottery is not open",
-				});
+			return res.status(400).json({
+				message: "Cannot cancel ticket - lottery is not open",
+			});
 		}
 
 		ticket.status = "cancelled";

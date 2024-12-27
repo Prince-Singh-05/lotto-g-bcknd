@@ -3,7 +3,6 @@ import Retailer from "../models/retailer.model";
 import jwt from "jsonwebtoken";
 import AffiliateTransaction from "../models/affiliateTransaction.model";
 import { generateUniqueId, verifyOTP } from "../utils/helpers";
-import { AuthRegistrationsCredentialListMappingListInstance } from "twilio/lib/rest/api/v2010/account/sip/domain/authTypes/authTypeRegistrations/authRegistrationsCredentialListMapping";
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret-key";
 

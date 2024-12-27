@@ -157,33 +157,49 @@ export const updateProfile = async (req: Request, res: Response) => {
 };
 
 // Update wallet balance
-export const updateWalletBalance = async (req: Request, res: Response) => {
-	try {
-		const { amount, operation } = req.body;
-		const user = await User.findById(req.user?.userId);
+// export const updateWalletBalance = async (req: Request, res: Response) => {
+// 	try {
+// 		const { amount, operation } = req.body;
+// 		const user = await User.findById(req.user?.userId);
 
+//     console.log("userId", req.user?.userId);
+
+// 		if (!user) {
+// 			return res.status(404).json({ message: "User not found" });
+// 		}
+
+// 		if (operation === "add") {
+// 			user.wallet_balance += amount;
+// 		} else if (operation === "subtract") {
+// 			if (user.wallet_balance < amount) {
+// 				return res
+// 					.status(400)
+// 					.json({ message: "Insufficient balance" });
+// 			}
+// 			user.wallet_balance -= amount;
+// 		}
+
+// 		await user.save();
+// 		res.status(200).json({
+// 			message: "Wallet updated successfully",
+// 			new_balance: user.wallet_balance,
+// 		});
+// 	} catch (error) {
+// 		// res.json({ message: (error as Error).message });
+//     res.status(400).json({message: (error as Error).message});
+// 	}
+// };
+
+// get wallet balance
+export const getWalletBalance = async (req: Request, res: Response) => {
+	try {
+		const user = await User.findById(req.user?.userId);
 		if (!user) {
 			return res.status(404).json({ message: "User not found" });
 		}
-
-		if (operation === "add") {
-			user.wallet_balance += amount;
-		} else if (operation === "subtract") {
-			if (user.wallet_balance < amount) {
-				return res
-					.status(400)
-					.json({ message: "Insufficient balance" });
-			}
-			user.wallet_balance -= amount;
-		}
-
-		await user.save();
-		res.status(200).json({
-			message: "Wallet updated successfully",
-			new_balance: user.wallet_balance,
-		});
+		res.status(200).json(user.wallet_balance);
 	} catch (error) {
-		res.status(400).json({ message: (error as Error).message });
+		res.status(500).json({ message: (error as Error).message });
 	}
 };
 

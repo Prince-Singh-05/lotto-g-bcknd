@@ -14,23 +14,23 @@ import {
 
 const lotteryRouter = Router();
 
-lotteryRouter.post("/create", authenticateToken, requireAdmin, createLottery);
-lotteryRouter.get("/getAll", getAllLotteries);
-lotteryRouter.get("/getLottery/:lottery_id", getLotteryById);
+lotteryRouter.post("/", authenticateToken, requireAdmin, createLottery);
+lotteryRouter.get("/", getAllLotteries);
+lotteryRouter.get("/:lottery_id", getLotteryById);
 lotteryRouter.put(
-	"/updateLottery/:lottery_id",
+	"/:lottery_id",
 	authenticateToken,
 	requireAdmin,
 	updateLottery
 );
 lotteryRouter.delete(
-	"/deleteLottery/:lottery_id",
+	"/:lottery_id",
 	authenticateToken,
 	requireAdmin,
 	deleteLottery
 );
 lotteryRouter.post(
-	"closeLottery/:lottery_id",
+	"/:lottery_id/close",
 	authenticateToken,
 	requireAdmin,
 	closeLottery
