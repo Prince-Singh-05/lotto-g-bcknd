@@ -118,7 +118,11 @@ const getDashboardData = async (req: Request, res: Response) => {
       createdAt: {
         $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
       },
-    }).sort({ createdAt: -1 });
+    })
+      .sort({ createdAt: -1 })
+      .populate("transactionId")
+      .populate("customerId", "name")
+      .exec();
 
     // Calculate metrics
     const totalEarnings = transactions.reduce(

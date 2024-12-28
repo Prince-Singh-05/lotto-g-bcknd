@@ -1,13 +1,16 @@
 import { Request, Response } from "express";
 import AffiliateTransaction from "../models/affiliateTransaction.model";
 import Retailer from "../models/retailer.model";
+import mongoose from "mongoose";
 
 export const createAffiliateTransaction = async (
 	req: Request,
 	res: Response
 ) => {
 	try {
-		const { retailerId, customerId, transactionId, amount } = req.body;
+		const { retailerId, transactionId, amount } = req.body;
+
+		const customerId = req.user?.userId;
 
 		// Get retailer's commission rate
 		const retailer = await Retailer.findById(retailerId);
@@ -117,6 +120,8 @@ export const processAffiliatePayment = async (req: Request, res: Response) => {
 			0
 		);
 
+		// const transactionIds = transactions.map((tx) => tx._id);
+
 		// Update all transactions to processed
 		await AffiliateTransaction.updateMany(
 			{ _id: { $in: transactionIds } },
@@ -149,22 +154,18 @@ export const processAffiliatePayment = async (req: Request, res: Response) => {
 export const getTransactionStats = async (req: Request, res: Response) => {
 	try {
 		const { retailerId } = req.params;
-		const { startDate, endDate } = req.query;
 
-		const dateQuery: any = {};
-		if (startDate && endDate) {
-			dateQuery.createdAt = {
-				$gte: new Date(startDate as string),
-				$lte: new Date(endDate as string),
-			};
+		// Check if retailer exists
+		const retailerExists = await Retailer.findById(retailerId);
+		if (!retailerExists) {
+			return res.status(404).json({ message: "Retailer not found" });
 		}
 
 		const [totalStats, pendingStats, processedStats] = await Promise.all([
 			AffiliateTransaction.aggregate([
 				{
 					$match: {
-						retailerId: retailerId,
-						...dateQuery,
+						retailerId: new mongoose.Types.ObjectId(retailerId),
 					},
 				},
 				{
@@ -176,12 +177,12 @@ export const getTransactionStats = async (req: Request, res: Response) => {
 					},
 				},
 			]),
+
 			AffiliateTransaction.aggregate([
 				{
 					$match: {
-						retailerId: retailerId,
+						retailerId: new mongoose.Types.ObjectId(retailerId),
 						status: "pending",
-						...dateQuery,
 					},
 				},
 				{
@@ -192,12 +193,12 @@ export const getTransactionStats = async (req: Request, res: Response) => {
 					},
 				},
 			]),
+
 			AffiliateTransaction.aggregate([
 				{
 					$match: {
-						retailerId: retailerId,
+						retailerId: new mongoose.Types.ObjectId(retailerId),
 						status: "processed",
-						...dateQuery,
 					},
 				},
 				{

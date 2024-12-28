@@ -44,19 +44,9 @@ export const recordTransaction = async (req: Request, res: Response) => {
 
 		const user_id = req.user?.userId;
 
-		console.log("ticket_numbers", ticket_numbers[0]);
-
 		if (!user_id) {
 			return res.status(401).json({ message: "No user Id found" });
 		}
-
-		// const transaction = new Transaction({
-		// 	user_id,
-		// 	amount,
-		// 	lottery_id,
-		// 	transaction_type,
-		// 	ticket_numbers,
-		// });
 
 		const transaction = await Transaction.create({
 			user_id,
@@ -81,7 +71,9 @@ export const recordTransaction = async (req: Request, res: Response) => {
 
 		res.status(201).json({ transaction, updatedBalance });
 	} catch (error) {
-		res.status(500).json({ message: (error as Error).message });
+		res.status(500).json({
+			message: (error as Error).message,
+		});
 	}
 };
 

@@ -1,36 +1,43 @@
 import express from "express";
-import { authenticateRetailer } from "../middlewares/auth.middleware";
 import {
-  createAffiliateTransaction,
-  getRetailerTransactions,
-  processAffiliatePayment,
-  getTransactionStats,
+	authenticateRetailer,
+	authenticateToken,
+} from "../middlewares/auth.middleware";
+import {
+	createAffiliateTransaction,
+	getRetailerTransactions,
+	processAffiliatePayment,
+	getTransactionStats,
 } from "../controllers/affiliate.controller";
 
 const affiliateTxnRouter = express.Router();
 
 // Create new affiliate transaction
-affiliateTxnRouter.post("/transaction", createAffiliateTransaction);
+affiliateTxnRouter.post(
+	"/transaction",
+	authenticateToken,
+	createAffiliateTransaction
+);
 
 // Get retailer's transactions with pagination and filters
 affiliateTxnRouter.get(
-  "/:retailerId/transactions",
-  authenticateRetailer,
-  getRetailerTransactions
+	"/transactions/:retailerId",
+	authenticateRetailer,
+	getRetailerTransactions
 );
 
 // Process affiliate payments
 affiliateTxnRouter.post(
-  "/:retailerId/process-payment",
-  authenticateRetailer,
-  processAffiliatePayment
+	"/process-payment/:retailerId",
+	authenticateRetailer,
+	processAffiliatePayment
 );
 
 // Get transaction statistics
 affiliateTxnRouter.get(
-  "/:retailerId/stats",
-  authenticateRetailer,
-  getTransactionStats
+	"/stats/:retailerId",
+	authenticateRetailer,
+	getTransactionStats
 );
 
 export default affiliateTxnRouter;
