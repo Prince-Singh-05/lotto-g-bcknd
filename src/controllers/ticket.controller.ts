@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Ticket from "../models/ticket.model";
 import Lottery from "../models/lottery.model";
+import mongoose from "mongoose";
 
 export const purchaseTicket = async (req: Request, res: Response) => {
 	try {
@@ -44,7 +45,12 @@ export const getUserTickets = async (req: Request, res: Response) => {
 	try {
 		const tickets = await Ticket.find({
 			user_id: req.user?.userId,
-		}).populate("lottery_id", "name description draw_date");
+		})
+			.populate("lottery_id", "name description draw_date")
+			.sort({
+				purchase_date: -1,
+			})
+			.exec();
 		res.status(200).json(tickets);
 	} catch (error) {
 		res.status(500).json({ message: (error as Error).message });
@@ -53,12 +59,26 @@ export const getUserTickets = async (req: Request, res: Response) => {
 
 export const getTicketsByLotteryId = async (req: Request, res: Response) => {
 	try {
+		const { lottery_id } = req.params;
+
+		// Validate lottery_id format
+		if (!mongoose.Types.ObjectId.isValid(lottery_id)) {
+			return res.status(400).json({
+				message: "Invalid lottery ID format",
+			});
+		}
+
 		const tickets = await Ticket.find({
-			lottery_id: req.params.lotteryId,
-		}).populate("lottery_id", "name description draw_date");
+			lottery_id: new mongoose.Types.ObjectId(lottery_id),
+		})
+			.populate("lottery_id", "name draw_date")
+			.exec();
 		res.status(200).json(tickets);
 	} catch (error) {
-		res.status(500).json({ message: (error as Error).message });
+		console.error("Error fetching tickets:", error);
+		res.status(500).json({
+			message: "Failed to fetch tickets",
+		});
 	}
 };
 
