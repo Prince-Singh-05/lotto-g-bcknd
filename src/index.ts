@@ -38,3 +38,8 @@ if (process.env.NODE_ENV !== "production") {
     console.log(`Server running on port ${PORT}`);
   });
 }
+
+// Export the Express app
+module.exports = app;
+// Also export as default for TypeScript
+export default app;
