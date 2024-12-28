@@ -12,7 +12,6 @@ import otpRouter from "./routes/otp.route";
 import lotteryRouter from "./routes/lottery.route";
 
 const app: Express = express();
-const port = process.env.PORT || 4000;
 connectDB();
 
 // Middleware
@@ -29,10 +28,13 @@ app.use("/api/v1/otp", otpRouter);
 
 // Basic health check route
 app.get("/health", (req: Request, res: Response) => {
-	res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Start server
-app.listen(port, () => {
-	console.log(`Server running at port http://localhost:${port}`);
-});
+// Only start the server if we're not in a serverless environment
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
