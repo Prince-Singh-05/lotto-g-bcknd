@@ -18,7 +18,7 @@ connectDB();
 app.use(
 	cors({
 		origin: [
-      "https://www.lottog.live",
+			"https://www.lottog.live",
 			"http://localhost:3000",
 			"https://lottery-ft.vercel.app",
 		],
