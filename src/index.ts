@@ -16,11 +16,15 @@ connectDB();
 
 // Middleware
 app.use(
-  cors({
-    origin: ["https://lottery-ft.vercel.app", "http://localhost:3000"],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    credentials: true,
-  })
+	cors({
+		origin: [
+			"https://lottog.live",
+			"http://localhost:3000",
+			"https://lottery-ft.vercel.app",
+		],
+		methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+		credentials: true,
+	})
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -34,15 +38,15 @@ app.use("/api/v1/otp", otpRouter);
 
 // Basic health check route
 app.get("/health", (req: Request, res: Response) => {
-  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+	res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 // Only start the server if we're not in a serverless environment
 if (process.env.NODE_ENV !== "production") {
-  const PORT = process.env.PORT || 4000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+	const PORT = process.env.PORT || 4000;
+	app.listen(PORT, () => {
+		console.log(`Server running on port ${PORT}`);
+	});
 }
 
 // Export the Express app
