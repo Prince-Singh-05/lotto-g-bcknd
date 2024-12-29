@@ -22,7 +22,7 @@ const sendOtpViaTwilio = async (phone: string, otp: string) => {
       to: phone.toString(),
       body: `Your OTP code is ${otp}`,
     });
-    console.log(message);
+    // console.log(message);
     return { success: true, message: message.sid };
   } catch (error) {
     console.error("Error sending OTP via Twilio:", error);
