@@ -24,6 +24,8 @@ export const register = async (req: Request, res: Response) => {
 			$or: [{ email }, { phoneNumber: phone }],
 		});
 
+		console.log("existingUser", existingUser);
+
 		if (existingUser) {
 			return res.status(400).json({
 				message: "User with this email or phone number already exists",
@@ -68,6 +70,7 @@ export const register = async (req: Request, res: Response) => {
 				},
 			});
 	} catch (error) {
+		console.log("User registration error", error);
 		res.status(400).json({ message: (error as Error).message });
 	}
 };
