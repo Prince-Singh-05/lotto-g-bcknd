@@ -248,7 +248,7 @@ export const uploadKycDocuments = async (req: Request, res: Response) => {
 		if (!user.kyc) {
 			user.kyc = {
 				status: "pending",
-				documents: [],
+				documents: [] as any,
 			};
 		}
 
@@ -262,5 +262,71 @@ export const uploadKycDocuments = async (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		res.status(400).json({ message: (error as Error).message });
+	}
+};
+
+// temporary upload for kyc
+export const updateKyc = async (req: Request, res: Response) => {
+	try {
+		const { kycType, idNumber, otp } = req.body;
+		const user = await User.findById(req.user?.userId);
+
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+
+		if (!verifyOTP(user.phoneNumber, otp)) {
+			return res.status(400).json({ message: "Invalid OTP" });
+		}
+
+		if (!user.kyc) {
+			return res.status(400).json({ message: "KYC not found" });
+		}
+
+		user.kyc.documents.push({
+			kycType,
+			url: "",
+			idNumber,
+		});
+		user.kyc.status = "approved";
+		await user.save();
+
+		const kyc_details = {
+			name: user.name,
+			kyc: user.kyc,
+			address: user.address,
+			dob: user.date_of_birth,
+			gender: user.gender,
+			phone_no: user.phoneNumber,
+		};
+
+		res.status(200).json({
+			message: "KYC status updated successfully",
+			kyc_details,
+		});
+	} catch (error) {
+		res.status(400).json({ message: (error as Error).message });
+	}
+};
+
+export const getKycDetails = async (req: Request, res: Response) => {
+	try {
+		const user = await User.findById(req.user?.userId);
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+
+		const kyc_details = {
+			name: user.name,
+			kyc: user.kyc,
+			address: user.address,
+			dob: user.date_of_birth,
+			gender: user.gender,
+			phone_no: user.phoneNumber,
+		};
+
+		res.status(200).json(kyc_details);
+	} catch (error) {
+		res.status(500).json({ message: (error as Error).message });
 	}
 };

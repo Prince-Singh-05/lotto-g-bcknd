@@ -7,7 +7,7 @@ const generateOTP = async () => {
 };
 
 const verifyOTP = async (phone: string, otp: string) => {
-	const otpRecord = await OTP.findOne({ phone });
+	const otpRecord = await OTP.findOne({ phone }).sort({ createdAt: -1 });
 	if (!otpRecord) {
 		return false;
 	}

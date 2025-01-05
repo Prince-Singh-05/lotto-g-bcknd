@@ -1,20 +1,22 @@
 import { Router } from "express";
 import {
-  getProfile,
-  getWalletBalance,
-  login,
-  register,
-  updateKycStatus,
-  updateProfile,
-  uploadKycDocuments,
+	getKycDetails,
+	getProfile,
+	getWalletBalance,
+	login,
+	register,
+	updateKyc,
+	updateKycStatus,
+	updateProfile,
+	uploadKycDocuments,
 } from "../controllers/user.controller";
 import {
-  authenticateToken,
-  requireOwnership,
+	authenticateToken,
+	requireOwnership,
 } from "../middlewares/auth.middleware";
 import {
-  getWalletTransactions,
-  recordTransaction,
+	getWalletTransactions,
+	recordTransaction,
 } from "../controllers/transaction.controller";
 import { getUserTickets } from "../controllers/ticket.controller";
 
@@ -29,11 +31,15 @@ userRouter.post("/upload-kyc-documents", authenticateToken, uploadKycDocuments);
 userRouter.put("/update-kyc-status", authenticateToken, updateKycStatus);
 userRouter.get("/wallet", authenticateToken, getWalletBalance);
 userRouter.get(
-  "/wallet/transactions",
-  authenticateToken,
-  getWalletTransactions
+	"/wallet/transactions",
+	authenticateToken,
+	getWalletTransactions
 );
 userRouter.post("/purchase", authenticateToken, recordTransaction);
 userRouter.get("/tickets", authenticateToken, getUserTickets);
+
+// kyc
+userRouter.get("/kyc/details", authenticateToken, getKycDetails);
+userRouter.put("/kyc/update", authenticateToken, updateKyc);
 
 export default userRouter;
