@@ -55,7 +55,9 @@ const register = async (req: Request, res: Response) => {
 		await retailer.save();
 		res.cookie("retailerToken", token, {
 			httpOnly: true,
-			maxAge: 60 * 60 * 24 * 1000,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "strict",
+			maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days
 		})
 			.status(201)
 			.json({
@@ -97,7 +99,9 @@ const login = async (req: Request, res: Response) => {
 
 		res.cookie("retailerToken", token, {
 			httpOnly: true,
-			maxAge: 60 * 60 * 24 * 1000,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "strict",
+			maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days
 		}).json({ message: "Login successful", token, retailer });
 	} catch (error) {
 		res.status(500).json({ message: "Server error" });

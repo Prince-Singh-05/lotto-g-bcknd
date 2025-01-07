@@ -56,7 +56,9 @@ export const register = async (req: Request, res: Response) => {
 
 		res.cookie("userToken", token, {
 			httpOnly: true,
-			maxAge: 60 * 60 * 24 * 1000,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "strict",
+			maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days
 		})
 			.status(201)
 			.json({
@@ -107,15 +109,22 @@ export const login = async (req: Request, res: Response) => {
 			}
 		);
 
-		res.status(200).json({
-			token,
-			user: {
-				id: user._id,
-				name: user.name,
-				email: user.email,
-				phoneNumber: user.phoneNumber,
-			},
-		});
+		res.cookie("userToken", token, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "strict",
+			maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days
+		})
+			.status(200)
+			.json({
+				token,
+				user: {
+					id: user._id,
+					name: user.name,
+					email: user.email,
+					phoneNumber: user.phoneNumber,
+				},
+			});
 	} catch (error) {
 		res.status(500).json({ message: (error as Error).message });
 	}
