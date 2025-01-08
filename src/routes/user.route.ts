@@ -5,6 +5,7 @@ import {
 	getWalletBalance,
 	login,
 	register,
+	resetKyc,
 	updateKyc,
 	updateKycStatus,
 	updateProfile,
@@ -41,5 +42,6 @@ userRouter.get("/tickets", authenticateToken, getUserTickets);
 // kyc
 userRouter.get("/kyc/details", authenticateToken, getKycDetails);
 userRouter.put("/kyc/update", authenticateToken, updateKyc);
+userRouter.put("/kyc/reset", authenticateToken, resetKyc);
 
 export default userRouter;

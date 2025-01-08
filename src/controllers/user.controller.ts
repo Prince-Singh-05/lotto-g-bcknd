@@ -318,6 +318,27 @@ export const updateKyc = async (req: Request, res: Response) => {
 	}
 };
 
+export const resetKyc = async (req: Request, res: Response) => {
+	try {
+		const user = await User.findById(req.user?.userId);
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+
+		// user.kyc = null;
+		if (user.kyc) {
+			user.kyc.status = "pending";
+		}
+		await user.save();
+
+		res.status(200).json({
+			message: "KYC status reset successfully",
+		});
+	} catch (error) {
+		res.status(400).json({ message: (error as Error).message });
+	}
+};
+
 export const getKycDetails = async (req: Request, res: Response) => {
 	try {
 		const user = await User.findById(req.user?.userId);
